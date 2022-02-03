@@ -1,12 +1,14 @@
 import express from 'express';
 
+import * as toastController from './controllers/toastController'
+
 const app = express();
-const port = 3000;
-
-app.get('/', (req, res) => {
-  res.send('Hello World! My name is Toastbot.');
-});
-
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  return console.log(`Express is listening at http://localhost:${port}`);
+    return console.log(`Express is listening at http://localhost:${port}`);
 });
+
+/**
+ * Primary app routes.
+ */
+app.post('/v1/toast', toastController.toast);
