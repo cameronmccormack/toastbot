@@ -2,6 +2,7 @@ import express from 'express';
 import 'dotenv/config'
 import bodyParser from 'body-parser';
 
+import * as healthcheckController from './controllers/healthcheckController'
 import * as toastController from './controllers/toastController'
 
 const app = express();
@@ -14,4 +15,5 @@ app.listen(port, () => {
 /**
  * Primary app routes.
  */
+app.get('/healthcheck', healthcheckController.check)
 app.post('/v1/toast', toastController.toast);
