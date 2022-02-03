@@ -37,7 +37,13 @@ function parseText(text: string): ParsedToast | ErrorMessage {
 
     if (!trimmedText.startsWith('<@')) return { error: untaggedToastError };
 
-    const words = trimmedText.split(' ');
+    // Slack user tags can come in the form <@U123456789|username>.
+    // Only the ID (the first part) is required for the tag to work.
+    // If the username has a space in it, it will break the logic below, so
+    // we strip off the usernames first as they are unnecessary.
+    const textWithoutUsernames = removeUsernames(trimmedText);
+
+    const words = textWithoutUsernames.split(' ');
     const firstWordOfToast = words.find(word => !isUserTag(word) && word !== ' ')
     if (!firstWordOfToast) return { error: missingMessageError };
 
@@ -52,6 +58,13 @@ function parseText(text: string): ParsedToast | ErrorMessage {
 }
 
 const isUserTag = (possibleTag: string): boolean => possibleTag.startsWith('<@') && possibleTag.endsWith('>');
+
+function removeUsernames(text: string): string {
+    return text.replace(
+        /<@.*?>/g,
+        function (x) { return x.split('|')[0] + '>' }
+    );
+}
 
 interface ErrorMessage {
     error: string
