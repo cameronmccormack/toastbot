@@ -15,7 +15,7 @@ export const toast = async (req: Request, res: Response): Promise<Response> => {
 
     const parsedText = parseText(text)
     if ('error' in parsedText) {
-        return res.status(200).json({ text: parsedText.error }).send()
+        return res.status(200).json({ text: parsedText.error });
     }
 
     // TODO: add a GIF too
@@ -29,11 +29,11 @@ export const toast = async (req: Request, res: Response): Promise<Response> => {
         channel: toastChannelId,
     });
 
-    return res.status(200).json({ text: `Ok! I have toasted in the <#${toastChannelId}> channel. Thanks for using Toastbot!` }).send();
+    return res.status(200).json({ text: `Ok! I have toasted in the <#${toastChannelId}> channel. Thanks for using Toastbot!` });
 }
 
 function parseText(text: string): ParsedToast | ErrorMessage {
-    const trimmedText = text.trim()
+    const trimmedText = text.trim();
 
     if (!trimmedText.startsWith('<@')) return { error: untaggedToastError };
 
