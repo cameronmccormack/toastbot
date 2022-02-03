@@ -1,5 +1,6 @@
-import { Request, Response } from 'express'
+import { Request, Response } from 'express';
 import { WebClient } from '@slack/web-api';
+import * as _ from 'lodash';
 
 const token = process.env.SLACK_TOKEN;
 const toastChannelId = process.env.TOAST_CHANNEL_ID
@@ -48,7 +49,9 @@ function parseText(text: string): ParsedToast | ErrorMessage {
     if (!firstWordOfToast) return { error: missingMessageError };
 
     const indexOfFirstWord = words.indexOf(firstWordOfToast);
-    const toasteeTags = words.slice(0, indexOfFirstWord).filter(x => x !== ' ');
+    const toasteeTags = _.uniq(
+        words.slice(0, indexOfFirstWord).filter(x => x !== ' ')
+    );
     if (toasteeTags.length === 0) return { error: untaggedToastError };
 
     const toastText = words.slice(indexOfFirstWord).join(' ');
