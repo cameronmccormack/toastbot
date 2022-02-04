@@ -45,7 +45,7 @@ export const toast = async (req: Request, res: Response): Promise<Response> => {
 
     if (parsedText.toasteeTags.some(tag => tag.includes(toasterId))) {
         const selfToastPost = await client.chat.postMessage({
-            text: `<@${toasterId}> toasted <@${toasterId}>`,
+            text: `<@${toasterId}> self-toasted <@${toasterId}>`,
             attachments: [
                 {
                     text: 'I just toasted myself! #selfpraise :selfie:',
