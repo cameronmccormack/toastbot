@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { WebClient } from '@slack/web-api';
 import * as _ from 'lodash';
+import { isUserTag, removeUsernames } from '../utils/userTagHelper';
 
 const token = process.env.SLACK_TOKEN;
 const toastChannelId = process.env.TOAST_CHANNEL_ID;
@@ -25,7 +26,7 @@ export const toast = async (req: Request, res: Response): Promise<Response> => {
     }
 
     // TODO: add a GIF too
-    await client.chat.postMessage({
+    const toastPost = await client.chat.postMessage({
         text: `<@${toasterId}> toasted ${parsedText.toasteeTags.join(' ')}`,
         attachments: [
             {
@@ -33,6 +34,11 @@ export const toast = async (req: Request, res: Response): Promise<Response> => {
             }
         ],
         channel: toastChannelId,
+    });
+    await client.reactions.add({
+        channel: toastPost.channel,
+        name: 'toastbot',
+        timestamp: toastPost.ts
     });
 
     return res.status(200).json({ text: `Ok! I have toasted in the <#${toastChannelId}> channel. Thanks for using Toastbot!` });
@@ -63,15 +69,6 @@ function parseText(text: string): ParsedToast | ErrorMessage {
     if (toastText.trim().length === 0) return { error: missingMessageError };
 
     return { toasteeTags, toastText };
-}
-
-const isUserTag = (possibleTag: string): boolean => possibleTag.startsWith('<@') && possibleTag.endsWith('>');
-
-function removeUsernames(text: string): string {
-    return text.replace(
-        /<@.*?>/g,
-        function (x) { return x.split('|')[0] + '>' }
-    );
 }
 
 // TODO make this work
