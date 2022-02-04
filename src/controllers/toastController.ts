@@ -13,8 +13,10 @@ const untaggedToastError = 'Sorry, Toastbot doesn\'t yet support untagged toasts
 const missingMessageError = 'It looks like you didn\'t include a Toast message. Please try again.';
 
 export const toast = async (req: Request, res: Response): Promise<Response> => {
-    // TODO: make this work
+    // TODO: make signature hash check work
     //if (!isValidRequest(req)) return res.status(400).send();
+
+    // TODO: delete this deprecated check method once the signature hash check works
     if (req.body.token !== verificationToken) return res.status(400).send();
 
     const toasterId = req.body.user_id;
@@ -41,10 +43,30 @@ export const toast = async (req: Request, res: Response): Promise<Response> => {
         timestamp: toastPost.ts
     });
 
+    if (parsedText.toasteeTags.some(tag => tag.includes(toasterId))) {
+        const selfToastPost = await client.chat.postMessage({
+            text: `<@${toasterId}> toasted <@${toasterId}>`,
+            attachments: [
+                {
+                    text: 'I just toasted myself! #selfpraise :selfie:',
+                }
+            ],
+            channel: toastChannelId,
+        });
+        await client.reactions.add({
+            channel: selfToastPost.channel,
+            name: 'selfie',
+            timestamp: selfToastPost.ts
+        });
+    }
+
     return res.status(200).json({ text: `Ok! I have toasted in the <#${toastChannelId}> channel. Thanks for using Toastbot!` });
 }
 
 function parseText(text: string): ParsedToast | ErrorMessage {
+    // TODO: update and refactor the logic in this method to allow non-tagged toastees
+    // (including those with spaces in their names)
+
     const trimmedText = text.trim();
 
     if (!trimmedText.startsWith('<@')) return { error: untaggedToastError };
