@@ -3,7 +3,8 @@ import { WebClient } from '@slack/web-api';
 import * as _ from 'lodash';
 
 const token = process.env.SLACK_TOKEN;
-const toastChannelId = process.env.TOAST_CHANNEL_ID
+const toastChannelId = process.env.TOAST_CHANNEL_ID;
+const verificationToken = process.env.SLACK_VERIFICATION_TOKEN;
 const client = new WebClient(token);
 
 const untaggedToastError = 'Sorry, Toastbot doesn\'t yet support untagged toasts. '
@@ -11,6 +12,10 @@ const untaggedToastError = 'Sorry, Toastbot doesn\'t yet support untagged toasts
 const missingMessageError = 'It looks like you didn\'t include a Toast message. Please try again.';
 
 export const toast = async (req: Request, res: Response): Promise<Response> => {
+    // TODO: make this work
+    //if (!isValidRequest(req)) return res.status(400).send();
+    if (req.body.token !== verificationToken) return res.status(400).send();
+
     const toasterId = req.body.user_id;
     const { text } = req.body;
 
@@ -68,6 +73,28 @@ function removeUsernames(text: string): string {
         function (x) { return x.split('|')[0] + '>' }
     );
 }
+
+// TODO make this work
+/*function isValidRequest(req: Request): boolean {
+    // Protect against replay attacks by rejecting if timestamp over a minute old
+    const requestUnixSeconds = parseInt(
+        req.get('X-Slack-Request-Timestamp')
+    );
+    const nowUnixSeconds = Math.floor(Date.now() / 1000)
+    if (requestUnixSeconds < nowUnixSeconds - 60) return false;
+
+    // Verify signing secret
+    const signatureBaseString = `v0:${requestUnixSeconds}:${req.body}}`;
+    const generatedSignature = createHmac('sha256', signingSecret)
+        .update(signatureBaseString)
+        .digest('hex');
+    const fullGeneratedSignature = `v0=${generatedSignature}`;
+    const slackSignature = req.get('X-Slack-Signature');
+    logger.info(fullGeneratedSignature)
+    logger.info(slackSignature);
+
+    return true;
+}*/
 
 interface ErrorMessage {
     error: string
