@@ -27,40 +27,54 @@ export const toast = async (req: Request, res: Response): Promise<Response> => {
         return res.status(200).json({ text: parsedText.error });
     }
 
+    // Need to send this now to stop slack treating as a 3000ms timeout
+    res.status(200).json({
+        text: `Ok! I'll send a toast to the <#${toastChannelId}> channel. Thanks for using Toastbot!`
+    })
+
+    // TODO: consider more parallelisation
+    await makeToast(toasterId, parsedText);
+    if (parsedText.toasteeTags.some(tag => tag.includes(toasterId))) {
+        await makeSelfToast(toasterId)
+    }
+
+    // TODO: send user a something went wrong message if makeToast fails
+}
+
+async function makeToast(toasterId: string, parsedToast: ParsedToast): Promise<void> {
     // TODO: add a GIF too
     const toastPost = await client.chat.postMessage({
-        text: `<@${toasterId}> toasted ${parsedText.toasteeTags.join(' ')}`,
+        text: `<@${toasterId}> toasted ${parsedToast.toasteeTags.join(' ')}`,
         attachments: [
             {
-                text: parsedText.toastText,
+                text: parsedToast.toastText,
             }
         ],
         channel: toastChannelId,
     });
+
     await client.reactions.add({
         channel: toastPost.channel,
         name: 'toastbot',
         timestamp: toastPost.ts
     });
+}
 
-    if (parsedText.toasteeTags.some(tag => tag.includes(toasterId))) {
-        const selfToastPost = await client.chat.postMessage({
-            text: `<@${toasterId}> self-toasted <@${toasterId}>`,
-            attachments: [
-                {
-                    text: 'I just toasted myself! #selfpraise :selfie:',
-                }
-            ],
-            channel: toastChannelId,
-        });
-        await client.reactions.add({
-            channel: selfToastPost.channel,
-            name: 'selfie',
-            timestamp: selfToastPost.ts
-        });
-    }
-
-    return res.status(200).json({ text: `Ok! I have toasted in the <#${toastChannelId}> channel. Thanks for using Toastbot!` });
+async function makeSelfToast(toasterId: string): Promise<void> {
+    const selfToastPost = await client.chat.postMessage({
+        text: `<@${toasterId}> self-toasted <@${toasterId}>`,
+        attachments: [
+            {
+                text: 'I just toasted myself! #selfpraise :selfie:',
+            }
+        ],
+        channel: toastChannelId,
+    });
+    await client.reactions.add({
+        channel: selfToastPost.channel,
+        name: 'selfie',
+        timestamp: selfToastPost.ts
+    });
 }
 
 function parseText(text: string): ParsedToast | ErrorMessage {
