@@ -3,6 +3,6 @@ export const isUserTag = (possibleTag: string): boolean => possibleTag.startsWit
 export function removeUsernames(text: string): string {
     return text.replace(
         /<@.*?>/g,
-        function (x) { return x.split('|')[0] + '>' }
+        function (x) { return x.split('|')[0] + '>'; }
     );
 }

@@ -1,9 +1,9 @@
 import express from 'express';
-import 'dotenv/config'
+import 'dotenv/config';
 import bodyParser from 'body-parser';
 
-import * as healthcheckController from './controllers/healthcheckController'
-import * as toastController from './controllers/toastController'
+import * as healthcheckController from './controllers/healthcheckController';
+import * as toastController from './controllers/toastController';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -15,5 +15,5 @@ app.listen(port, () => {
 /**
  * Primary app routes.
  */
-app.get('/healthcheck', healthcheckController.check)
+app.get('/healthcheck', healthcheckController.check);
 app.post('/v1/toast', toastController.toast);

@@ -11,7 +11,7 @@ const verificationToken = process.env.SLACK_VERIFICATION_TOKEN;
 const client = new WebClient(token);
 
 const untaggedToastError = 'Sorry, Toastbot doesn\'t yet support untagged toasts. '
-    + 'Your toast must begin with one or more tagged Slack users.'
+    + 'Your toast must begin with one or more tagged Slack users.';
 const missingMessageError = 'It looks like you didn\'t include a Toast message. Please try again.';
 
 export const toast = async (req: Request, res: Response): Promise<Response> => {
@@ -24,7 +24,7 @@ export const toast = async (req: Request, res: Response): Promise<Response> => {
     const toasterId = req.body.user_id;
     const { text } = req.body;
 
-    const parsedText = parseText(text)
+    const parsedText = parseText(text);
     if ('error' in parsedText) {
         // This has to be a 200 for Slack to show it to the user, even though this is an
         // invalid user input case
@@ -33,17 +33,17 @@ export const toast = async (req: Request, res: Response): Promise<Response> => {
 
     // Need to send this now to stop slack treating as a 3000ms timeout
     res.status(200).json({
-        text: `Ok! I'll send a toast to the <#${toastChannelId}> channel. Thanks for using Toastbot!`
-    })
+        text: `Ok! I'll send a toast to the <#${toastChannelId}> channel. Thanks for using Toastbot!`,
+    });
 
     // TODO: consider more parallelisation
     await makeToast(toasterId, parsedText);
     if (parsedText.toasteeTags.some(tag => tag.includes(toasterId))) {
-        await makeSelfToast(toasterId)
+        await makeSelfToast(toasterId);
     }
 
     // TODO: send user a something went wrong message if makeToast fails
-}
+};
 
 async function makeToast(toasterId: string, parsedToast: ParsedToast): Promise<void> {
     const gifUrl = await getGifUrl(parsedToast.hashtags);
@@ -53,7 +53,7 @@ async function makeToast(toasterId: string, parsedToast: ParsedToast): Promise<v
             {
                 text: parsedToast.toastText,
                 image_url: gifUrl,
-            }
+            },
         ],
         channel: toastChannelId,
     });
@@ -61,7 +61,7 @@ async function makeToast(toasterId: string, parsedToast: ParsedToast): Promise<v
     await client.reactions.add({
         channel: toastPost.channel,
         name: 'toastbot',
-        timestamp: toastPost.ts
+        timestamp: toastPost.ts,
     });
 }
 
@@ -72,14 +72,14 @@ async function makeSelfToast(toasterId: string): Promise<void> {
             {
                 text: 'I just toasted myself! #selfpraise',
                 image_url: await getGifUrl(['selfpraise']),
-            }
+            },
         ],
         channel: toastChannelId,
     });
     await client.reactions.add({
         channel: selfToastPost.channel,
         name: 'selfie',
-        timestamp: selfToastPost.ts
+        timestamp: selfToastPost.ts,
     });
 }
 
@@ -98,7 +98,7 @@ function parseText(text: string): ParsedToast | ErrorMessage {
     const textWithoutUsernames = removeUsernames(trimmedText);
 
     const words = textWithoutUsernames.split(' ');
-    const firstWordOfToast = words.find(word => !isUserTag(word) && word !== ' ')
+    const firstWordOfToast = words.find(word => !isUserTag(word) && word !== ' ');
     if (!firstWordOfToast) return { error: missingMessageError };
 
     const indexOfFirstWord = words.indexOf(firstWordOfToast);
@@ -113,7 +113,7 @@ function parseText(text: string): ParsedToast | ErrorMessage {
     return {
         toasteeTags: toasteeTags,
         toastText: toastText,
-        hashtags: getHashtags(toastText)
+        hashtags: getHashtags(toastText),
     };
 }
 

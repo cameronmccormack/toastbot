@@ -20,7 +20,7 @@ export class Logger {
         this.logger.log({
             level: 'info',
             message: message,
-            ...additional
-        })
+            ...additional,
+        });
     }
 }
