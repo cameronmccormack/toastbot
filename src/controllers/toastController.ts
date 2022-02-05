@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { WebClient } from '@slack/web-api';
 import * as _ from 'lodash';
 import { isUserTag, removeUsernames } from '../utils/userTagHelper';
+import { getHashtags } from '../utils/hashtagHelper';
+import { getGifUrl } from '../utils/gifHelper';
 
 const token = process.env.SLACK_TOKEN;
 const toastChannelId = process.env.TOAST_CHANNEL_ID;
@@ -44,12 +46,13 @@ export const toast = async (req: Request, res: Response): Promise<Response> => {
 }
 
 async function makeToast(toasterId: string, parsedToast: ParsedToast): Promise<void> {
-    // TODO: add a GIF too
+    const gifUrl = await getGifUrl(parsedToast.hashtags);
     const toastPost = await client.chat.postMessage({
         text: `<@${toasterId}> toasted ${parsedToast.toasteeTags.join(' ')}`,
         attachments: [
             {
                 text: parsedToast.toastText,
+                image_url: gifUrl,
             }
         ],
         channel: toastChannelId,
@@ -67,7 +70,8 @@ async function makeSelfToast(toasterId: string): Promise<void> {
         text: `<@${toasterId}> self-toasted <@${toasterId}>`,
         attachments: [
             {
-                text: 'I just toasted myself! #selfpraise :selfie:',
+                text: 'I just toasted myself! #selfpraise',
+                image_url: await getGifUrl(['selfpraise']),
             }
         ],
         channel: toastChannelId,
@@ -106,7 +110,11 @@ function parseText(text: string): ParsedToast | ErrorMessage {
     const toastText = words.slice(indexOfFirstWord).join(' ');
     if (toastText.trim().length === 0) return { error: missingMessageError };
 
-    return { toasteeTags, toastText };
+    return {
+        toasteeTags: toasteeTags,
+        toastText: toastText,
+        hashtags: getHashtags(toastText)
+    };
 }
 
 // TODO make this work
@@ -137,5 +145,6 @@ interface ErrorMessage {
 
 interface ParsedToast {
     toasteeTags: string[],
-    toastText: string
+    toastText: string,
+    hashtags: string[]
 }
