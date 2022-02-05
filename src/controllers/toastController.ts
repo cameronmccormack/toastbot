@@ -24,6 +24,8 @@ export const toast = async (req: Request, res: Response): Promise<Response> => {
 
     const parsedText = parseText(text)
     if ('error' in parsedText) {
+        // This has to be a 200 for Slack to show it to the user, even though this is an
+        // invalid user input case
         return res.status(200).json({ text: parsedText.error });
     }
 
