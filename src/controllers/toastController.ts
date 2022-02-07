@@ -23,10 +23,10 @@ const untaggedToastError = 'Sorry, Toastbot doesn\'t yet support untagged toasts
 const missingMessageError = 'It looks like you didn\'t include a Toast message. Please try again.';
 
 export const toast = async (req: Request, res: Response): Promise<Response> => {
-    // TODO: make signature hash check work
+    // TODO TOASTBOT-1: make signature hash check work
     //if (!isValidRequest(req)) return res.status(400).send();
 
-    // TODO: delete this deprecated check method once the signature hash check works
+    // TODO TOASTBOT-1: delete this deprecated check method once the signature hash check works
     if (req.body.token !== verificationToken) return res.status(400).send();
 
     const toasterId = req.body.user_id;
@@ -50,13 +50,13 @@ export const toast = async (req: Request, res: Response): Promise<Response> => {
         text: `Ok! I'll send a toast to the <#${toastChannelId}> channel. Thanks for using Toastbot!`,
     });
 
-    // TODO: consider more parallelisation
+    // TODO TOASTBOT-5: consider more parallelisation
     await makeToast(toasterId, parsedText);
     if (parsedText.toasteeTags.some(tag => tag.includes(toasterId))) {
         await makeSelfToast(toasterId);
     }
 
-    // TODO: send user a something went wrong message if makeToast fails
+    // TODO TOASTBOT-2: send user a something went wrong message if makeToast fails
 };
 
 async function makeToast(toasterId: string, parsedToast: ParsedToast): Promise<void> {
@@ -98,7 +98,7 @@ async function makeSelfToast(toasterId: string): Promise<void> {
 }
 
 function parseText(text: string): ParsedToast | ErrorMessage {
-    // TODO: update and refactor the logic in this method to allow non-tagged toastees
+    // TODO TOASTBOT-3: update and refactor the logic in this method to allow non-tagged toastees
     // (including those with spaces in their names)
 
     const trimmedText = text.trim();
@@ -131,7 +131,7 @@ function parseText(text: string): ParsedToast | ErrorMessage {
     };
 }
 
-// TODO make this work
+// TODO TOASTBOT-1: make this work
 /*function isValidRequest(req: Request): boolean {
     // Protect against replay attacks by rejecting if timestamp over a minute old
     const requestUnixSeconds = parseInt(
