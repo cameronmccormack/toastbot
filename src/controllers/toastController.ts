@@ -6,6 +6,7 @@ import { getHashtags } from '../utils/hashtagHelper';
 import { getGifUrl } from '../utils/gifHelper';
 
 const token = process.env.SLACK_TOKEN;
+const ownerId = process.env.OWNER_ID;
 const toastChannelId = process.env.TOAST_CHANNEL_ID;
 const verificationToken = process.env.SLACK_VERIFICATION_TOKEN;
 const isInMaintenanceMode = process.env.MAINTENANCE_MODE.trim() === 'true';
@@ -15,6 +16,8 @@ const maintenanceBypassUserIds = process.env.MAINTENANCE_BYPASS_USER_IDS
 
 const client = new WebClient(token);
 
+const maintenanceMessage = `Sorry, Toastbot is currently in maintenance mode. '
+    + 'Please try again later or contact <@${ownerId}> if this is unexpected.`;
 const untaggedToastError = 'Sorry, Toastbot doesn\'t yet support untagged toasts. '
     + 'Your toast must begin with one or more tagged Slack users.';
 const missingMessageError = 'It looks like you didn\'t include a Toast message. Please try again.';
@@ -31,7 +34,7 @@ export const toast = async (req: Request, res: Response): Promise<Response> => {
 
     if (isInMaintenanceMode && !maintenanceBypassUserIds.some(userId => userId === toasterId)) {
         return res.status(200).json({
-            text: 'Sorry, Toastbot is currently in maintenance mode. Please try again later.',
+            text: maintenanceMessage,
         });
     }
 
