@@ -17,7 +17,7 @@ const maintenanceBypassUserIds = process.env.MAINTENANCE_BYPASS_USER_IDS
 const client = new WebClient(token);
 
 const maintenanceMessage = 'Sorry, Toastbot is currently in maintenance mode. '
-    + `Please try again later or contact <@${ownerId}> if this is unexpected.`;
+    + `Please try again later or, if this is unexpected, contact <@${ownerId}>.`;
 const untaggedToastError = 'Sorry, Toastbot doesn\'t yet support untagged toasts. '
     + 'Your toast must begin with one or more tagged Slack users.';
 const missingMessageError = 'It looks like you didn\'t include a Toast message. Please try again.';
