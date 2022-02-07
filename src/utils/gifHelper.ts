@@ -3,6 +3,7 @@ import axios from 'axios';
 const baseUrl = 'https://softwire.ontoast.io/hashtags/image/';
 
 export async function getGifUrl(hashtags: string[]): Promise<string | undefined> {
+    if (hashtags.length === 0) return undefined;
     for (const hashtag of hashtags) {
         const url = baseUrl + hashtag;
         try {
