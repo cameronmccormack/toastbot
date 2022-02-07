@@ -9,7 +9,9 @@ const token = process.env.SLACK_TOKEN;
 const toastChannelId = process.env.TOAST_CHANNEL_ID;
 const verificationToken = process.env.SLACK_VERIFICATION_TOKEN;
 const isInMaintenanceMode = process.env.MAINTENANCE_MODE.trim() === 'true';
-const maintenanceBypassUserIds = process.env.MAINTENANCE_BYPASS_USER_IDS.split(',') || [];
+const maintenanceBypassUserIds = process.env.MAINTENANCE_BYPASS_USER_IDS
+    ? process.env.MAINTENANCE_BYPASS_USER_IDS.trim().split(',')
+    : [];
 
 const client = new WebClient(token);
 
