@@ -9,7 +9,7 @@ const token = process.env.SLACK_TOKEN;
 const toastChannelId = process.env.TOAST_CHANNEL_ID;
 const verificationToken = process.env.SLACK_VERIFICATION_TOKEN;
 const isInMaintenanceMode = process.env.MAINTENANCE_MODE.trim() === 'true';
-const maintenanceBypassUsers = process.env.MAINTENANCE_BYPASS_USER_IDS.split(',');
+const maintenanceBypassUserIds = process.env.MAINTENANCE_BYPASS_USER_IDS.split(',') || [];
 
 const client = new WebClient(token);
 
@@ -27,7 +27,7 @@ export const toast = async (req: Request, res: Response): Promise<Response> => {
     const toasterId = req.body.user_id;
     const { text } = req.body;
 
-    if (isInMaintenanceMode && !maintenanceBypassUsers.some(userId => userId === toasterId)) {
+    if (isInMaintenanceMode && !maintenanceBypassUserIds.some(userId => userId === toasterId)) {
         return res.status(200).json({
             text: 'Sorry, Toastbot is currently in maintenance mode. Please try again later.',
         });
