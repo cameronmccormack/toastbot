@@ -16,11 +16,24 @@ const maintenanceBypassUserIds = process.env.MAINTENANCE_BYPASS_USER_IDS
 
 const client = new WebClient(token);
 
+interface ToastParsingErrorMessage {
+    error: string
+}
+
+interface ParsedToast {
+    toasteeTags: string[],
+    toastText: string,
+    hashtags: string[]
+}
+
 const maintenanceMessage = 'Sorry, Toastbot is currently in maintenance mode. '
     + `Please try again later or, if this is unexpected, contact <@${ownerId}>.`;
-const untaggedToastError = 'Sorry, Toastbot doesn\'t yet support untagged toasts. '
-    + 'Your toast must begin with one or more tagged Slack users.';
-const missingMessageError = 'It looks like you didn\'t include a Toast message. Please try again.';
+const noToasteeError = {
+    error: 'Your toast must either start with a Slack user tagged with an @ or an untagged toastee in square brackets.',
+};
+const missingMessageError = {
+    error: 'It looks like you didn\'t include a Toast message. Please try again.',
+};
 
 export const toast = async (req: Request, res: Response): Promise<Response> => {
     // TODO TOASTBOT-1: make signature hash check work
@@ -97,11 +110,11 @@ async function makeSelfToast(toasterId: string): Promise<void> {
     });
 }
 
-function parseText(text: string): ParsedToast | ErrorMessage {
+function parseText(text: string): ParsedToast | ToastParsingErrorMessage {
     const trimmedText = text.trim();
     const splitText = splitByToasteeTags(trimmedText);
 
-    if (splitText.length === 0) return { error: untaggedToastError };
+    if (splitText.length === 0) return noToasteeError;
 
     const toasteeTags: string[] = [];
     for (let i = 0; i < splitText.length; i++) {
@@ -113,7 +126,7 @@ function parseText(text: string): ParsedToast | ErrorMessage {
         } else if (word.trim().length === 0) {
             // do nothing; ignore spaces between toastees
         } else {
-            if (toasteeTags.length === 0) return { error: untaggedToastError };
+            if (toasteeTags.length === 0) return noToasteeError;
             const toastText = splitText.slice(i).join();
             return {
                 toasteeTags: _.uniq(toasteeTags),
@@ -122,7 +135,7 @@ function parseText(text: string): ParsedToast | ErrorMessage {
             };
         }
     }
-    return { error: missingMessageError };
+    return missingMessageError;
 }
 
 function joinToastees(toastees: string[]): string {
@@ -154,13 +167,3 @@ function joinToastees(toastees: string[]): string {
 
     return true;
 }*/
-
-interface ErrorMessage {
-    error: string
-}
-
-interface ParsedToast {
-    toasteeTags: string[],
-    toastText: string,
-    hashtags: string[]
-}
