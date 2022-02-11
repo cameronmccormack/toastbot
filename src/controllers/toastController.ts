@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { WebClient } from '@slack/web-api';
 import * as _ from 'lodash';
-import { isUserTag, removeUsernames } from '../utils/userTagHelper';
+import { isUserTag, splitByToasteeTags } from '../utils/userTagHelper';
 import { getHashtags } from '../utils/hashtagHelper';
 import { getGifUrl } from '../utils/gifHelper';
 
@@ -98,37 +98,30 @@ async function makeSelfToast(toasterId: string): Promise<void> {
 }
 
 function parseText(text: string): ParsedToast | ErrorMessage {
-    // TODO TOASTBOT-3: update and refactor the logic in this method to allow non-tagged toastees
-    // (including those with spaces in their names)
-
+    // TODO TOASTBOT-3: allow non-tagged toastees
     const trimmedText = text.trim();
+    const splitText = splitByToasteeTags(trimmedText);
 
-    if (!trimmedText.startsWith('<@')) return { error: untaggedToastError };
+    if (splitText.length === 0) return { error: untaggedToastError };
 
-    // Slack user tags can come in the form <@U123456789|username>.
-    // Only the ID (the first part) is required for the tag to work.
-    // If the username has a space in it, it will break the logic below, so
-    // we strip off the usernames first as they are unnecessary.
-    const textWithoutUsernames = removeUsernames(trimmedText);
-
-    const words = textWithoutUsernames.split(' ');
-    const firstWordOfToast = words.find(word => !isUserTag(word) && word !== ' ');
-    if (!firstWordOfToast) return { error: missingMessageError };
-
-    const indexOfFirstWord = words.indexOf(firstWordOfToast);
-    const toasteeTags = _.uniq(
-        words.slice(0, indexOfFirstWord).filter(x => x !== ' ')
-    );
-    if (toasteeTags.length === 0) return { error: untaggedToastError };
-
-    const toastText = words.slice(indexOfFirstWord).join(' ');
-    if (toastText.trim().length === 0) return { error: missingMessageError };
-
-    return {
-        toasteeTags: toasteeTags,
-        toastText: toastText,
-        hashtags: getHashtags(toastText),
-    };
+    const toasteeTags: string[] = [];
+    for (let i = 0; i < splitText.length; i++) {
+        const word = splitText[i];
+        if (isUserTag(word)) {
+            toasteeTags.push(word);
+        } else if (word.trim().length === 0) {
+            // do nothing; ignore spaces between toastees
+        } else {
+            if (toasteeTags.length === 0) return { error: untaggedToastError };
+            const toastText = splitText.slice(i).join();
+            return {
+                toasteeTags: _.uniq(toasteeTags),
+                toastText: toastText,
+                hashtags: getHashtags(toastText),
+            };
+        }
+    }
+    return { error: missingMessageError };
 }
 
 // TODO TOASTBOT-1: make this work

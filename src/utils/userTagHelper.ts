@@ -1,8 +1,8 @@
-export const isUserTag = (possibleTag: string): boolean => possibleTag.startsWith('<@') && possibleTag.endsWith('>');
+export const isUserTag = (possibleTag: string): boolean => /^<@U[\w|\s]*>$/.test(possibleTag);
+export const isNonTaggedToastee = (possibleTag: string): boolean => /^\[[\w|\s-]*\[$/.test(possibleTag);
 
-export function removeUsernames(text: string): string {
-    return text.replace(
-        /<@.*?>/g,
-        function (x) { return x.split('|')[0] + '>'; }
-    );
+export function splitByToasteeTags(text: string): string[] {
+    return text
+        .split(/(<@U[\w|\s]*>)|(\[[\w|\s]*\])/g)
+        .filter(Boolean);
 }
