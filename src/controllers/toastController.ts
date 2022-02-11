@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { WebClient } from '@slack/web-api';
 import * as _ from 'lodash';
-import { isUserTag, splitByToasteeTags } from '../utils/userTagHelper';
+import { isNonTaggedToastee, isTaggedToastee, splitByToasteeTags } from '../utils/toasteeHelper';
 import { getHashtags } from '../utils/hashtagHelper';
 import { getGifUrl } from '../utils/gifHelper';
 
@@ -62,7 +62,7 @@ export const toast = async (req: Request, res: Response): Promise<Response> => {
 async function makeToast(toasterId: string, parsedToast: ParsedToast): Promise<void> {
     const gifUrl = await getGifUrl(parsedToast.hashtags);
     const toastPost = await client.chat.postMessage({
-        text: `<@${toasterId}> toasted ${parsedToast.toasteeTags.join(' ')}`,
+        text: `<@${toasterId}> toasted ${joinToastees(parsedToast.toasteeTags)}`,
         attachments: [
             {
                 text: parsedToast.toastText,
@@ -98,7 +98,6 @@ async function makeSelfToast(toasterId: string): Promise<void> {
 }
 
 function parseText(text: string): ParsedToast | ErrorMessage {
-    // TODO TOASTBOT-3: allow non-tagged toastees
     const trimmedText = text.trim();
     const splitText = splitByToasteeTags(trimmedText);
 
@@ -107,8 +106,10 @@ function parseText(text: string): ParsedToast | ErrorMessage {
     const toasteeTags: string[] = [];
     for (let i = 0; i < splitText.length; i++) {
         const word = splitText[i];
-        if (isUserTag(word)) {
+        if (isTaggedToastee(word)) {
             toasteeTags.push(word);
+        } else if (isNonTaggedToastee(word)) {
+            toasteeTags.push(`\`${word.slice(1, word.length - 1)}\``);
         } else if (word.trim().length === 0) {
             // do nothing; ignore spaces between toastees
         } else {
@@ -122,6 +123,14 @@ function parseText(text: string): ParsedToast | ErrorMessage {
         }
     }
     return { error: missingMessageError };
+}
+
+function joinToastees(toastees: string[]): string {
+    if (toastees.length === 1) {
+        return toastees[0];
+    } else {
+        return `${toastees.slice(0, -1).join(', ')} and ${toastees.at(-1)}`;
+    }
 }
 
 // TODO TOASTBOT-1: make this work
