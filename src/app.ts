@@ -1,13 +1,12 @@
 import express from 'express';
 import 'dotenv/config';
-import bodyParser from 'body-parser';
 
 import * as healthcheckController from './controllers/healthcheckController';
 import * as toastController from './controllers/toastController';
 
 const app = express();
 const port = process.env.PORT || 3000;
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 app.listen(port, () => {
     return console.log(`Express is listening at http://localhost:${port}`);
 });

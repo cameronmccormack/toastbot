@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
-import { WebClient } from '@slack/web-api';
-import * as _ from 'lodash';
+import { ChatPostMessageResponse, WebClient } from '@slack/web-api';
 import { isNonTaggedToastee, isTaggedToastee, splitByToasteeTags } from '../utils/toasteeHelper';
 import { getHashtags } from '../utils/hashtagHelper';
 import { getGifUrl } from '../utils/gifHelper';
@@ -63,18 +62,24 @@ export const toast = async (req: Request, res: Response): Promise<Response> => {
         text: `Ok! I'll send a toast to the <#${toastChannelId}> channel. Thanks for using Toastbot!`,
     });
 
-    // TODO TOASTBOT-5: consider more parallelisation
-    await makeToast(toasterId, parsedText);
-    if (parsedText.toasteeTags.some(tag => tag.includes(toasterId))) {
-        await makeSelfToast(toasterId);
+    // Ensure that the primary toast has been sent before any other actions
+    const primaryToast = await makeToast(toasterId, parsedText);
+
+    if (!primaryToast.ok || !primaryToast.channel || !primaryToast.ts) {
+        // TODO TOASTBOT-2: send user a something went wrong message if makeToast fails
     }
 
-    // TODO TOASTBOT-2: send user a something went wrong message if makeToast fails
+    const reactToToastPromise = reactToPost(primaryToast, 'toastbot');
+    const selfToastPromise = (parsedText.toasteeTags.some(tag => tag.includes(toasterId)))
+        ? makeSelfToast(toasterId)
+        : Promise.resolve();
+
+    await Promise.allSettled([reactToToastPromise, selfToastPromise]);
 };
 
-async function makeToast(toasterId: string, parsedToast: ParsedToast): Promise<void> {
+async function makeToast(toasterId: string, parsedToast: ParsedToast): Promise<ChatPostMessageResponse> {
     const gifUrl = await getGifUrl(parsedToast.hashtags);
-    const toastPost = await client.chat.postMessage({
+    return await client.chat.postMessage({
         text: `<@${toasterId}> toasted ${joinToastees(parsedToast.toasteeTags)}`,
         attachments: [
             {
@@ -83,12 +88,6 @@ async function makeToast(toasterId: string, parsedToast: ParsedToast): Promise<v
             },
         ],
         channel: toastChannelId,
-    });
-
-    await client.reactions.add({
-        channel: toastPost.channel,
-        name: 'toastbot',
-        timestamp: toastPost.ts,
     });
 }
 
@@ -103,10 +102,17 @@ async function makeSelfToast(toasterId: string): Promise<void> {
         ],
         channel: toastChannelId,
     });
+
+    if (!!selfToastPost.ok || !!selfToastPost.channel || !!selfToastPost.ts) {
+        await reactToPost(selfToastPost, 'selfie');
+    }
+}
+
+async function reactToPost(post: ChatPostMessageResponse, reactionName: string): Promise<void> {
     await client.reactions.add({
-        channel: selfToastPost.channel,
-        name: 'selfie',
-        timestamp: selfToastPost.ts,
+        channel: post.channel,
+        name: reactionName,
+        timestamp: post.ts,
     });
 }
 
@@ -129,7 +135,7 @@ function parseText(text: string): ParsedToast | ToastParsingErrorMessage {
             if (toasteeTags.length === 0) return noToasteeError;
             const toastText = splitText.slice(i).join();
             return {
-                toasteeTags: _.uniq(toasteeTags),
+                toasteeTags: [...new Set(toasteeTags)],
                 toastText: toastText,
                 hashtags: getHashtags(toastText),
             };
