@@ -16,5 +16,5 @@ app.listen(port, () => {
  * Primary app routes.
  */
 app.get('/healthcheck', healthcheckController.check);
-app.get('/v1/help', helpController.help);
+app.post('/v1/help', helpController.help);
 app.post('/v1/toast', toastController.toast);
