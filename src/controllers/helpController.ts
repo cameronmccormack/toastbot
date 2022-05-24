@@ -13,4 +13,4 @@ const helpText = '*Toast Help*\n\n'
     + '*Toast:* After the toastees, the rest of the message will be sent as the toast. This message may contain '
     + 'hashtags (channel names also work as hashtags). If hashtags are included, Toastbot will search for an '
     + 'appropriate GIF. The priority order is non-channel hashtags in order of appearance followed by channel names '
-    + 'in order of appearance.\n\n';
+    + 'in order of appearance.';
