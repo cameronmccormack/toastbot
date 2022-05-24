@@ -13,9 +13,4 @@ const helpText = '*Toast Help*\n\n'
     + '*Toast:* After the toastees, the rest of the message will be sent as the toast. This message may contain '
     + 'hashtags (channel names also work as hashtags). If hashtags are included, Toastbot will search for an '
     + 'appropriate GIF. The priority order is non-channel hashtags in order of appearance followed by channel names '
-    + 'in order of appearance.\n\n'
-    + '*Error Messages*\n\n'
-    + 'If you see the error message `/toast failed with the error "operation_timeout"`, this means that Toastbot has '
-    + 'taken longer than Slack\'s required 3000ms to respond to the slash command. This is probably due to a Heroku '
-    + 'cold start and will be fixed in the near future! If you see this message, your toast will probably still work '
-    + 'fine - wait 20 seconds or so before trying again.';
+    + 'in order of appearance.\n\n';
