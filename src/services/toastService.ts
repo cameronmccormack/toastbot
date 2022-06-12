@@ -1,10 +1,9 @@
 import { ChatPostMessageResponse } from '@slack/web-api';
 import { client } from '../clients/slackClient';
+import { config } from '../config';
 import { ParsedToast } from '../models/parsedToast';
 import { getGifUrl } from '../utils/gifHelper';
 import { reactToPost } from './reactionService';
-
-const toastChannelId = process.env.TOAST_CHANNEL_ID;
 
 export async function makeToast(toasterId: string, parsedToast: ParsedToast): Promise<ChatPostMessageResponse> {
     const gifUrl = await getGifUrl(parsedToast.hashtags);
@@ -16,7 +15,7 @@ export async function makeToast(toasterId: string, parsedToast: ParsedToast): Pr
                 image_url: gifUrl ?? undefined,
             },
         ],
-        channel: toastChannelId,
+        channel: config.toastChannelId,
     });
 }
 
@@ -29,7 +28,7 @@ export async function makeSelfToast(toasterId: string): Promise<void> {
                 image_url: await getGifUrl(['selfpraise']) ?? undefined,
             },
         ],
-        channel: toastChannelId,
+        channel: config.toastChannelId,
     });
 
     if (!!selfToastPost.ok || !!selfToastPost.channel || !!selfToastPost.ts) {
