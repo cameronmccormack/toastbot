@@ -2,8 +2,8 @@ import axios from 'axios';
 
 const baseUrl = 'https://softwire.ontoast.io/hashtags/image/';
 
-export async function getGifUrl(hashtags: string[]): Promise<string | undefined> {
-    if (hashtags.length === 0) return undefined;
+export async function getGifUrl(hashtags: string[]): Promise<string | null> {
+    if (hashtags.length === 0) return null;
     for (const hashtag of hashtags) {
         const url = baseUrl + hashtag;
         try {
@@ -13,5 +13,5 @@ export async function getGifUrl(hashtags: string[]): Promise<string | undefined>
             // This is an expected case - the user might make a hashtag that doesn't have a gif.
         }
     }
-    return undefined;
+    return null;
 }
