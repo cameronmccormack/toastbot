@@ -3,7 +3,3 @@ export interface ParsedToast {
     toastText: string,
     hashtags: string[]
 }
-
-export interface ToastParsingErrorMessage {
-    error: string
-}

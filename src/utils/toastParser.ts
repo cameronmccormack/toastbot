@@ -1,4 +1,5 @@
-import { ParsedToast, ToastParsingErrorMessage } from '../models/parsedToast';
+import { ParsedToast } from '../models/parsedToast';
+import { ToastParsingError } from '../models/toastParsingError';
 import { getHashtags } from './hashtagHelper';
 import { splitByToasteeTags, isTaggedToastee, isNonTaggedToastee } from './toasteeHelper';
 
@@ -9,7 +10,7 @@ const missingMessageError = {
     error: 'It looks like you didn\'t include a Toast message. Please try again.',
 };
 
-export function parseText(text: string): ParsedToast | ToastParsingErrorMessage {
+export function parseText(text: string): ParsedToast | ToastParsingError {
     const trimmedText = text.trim();
     const splitText = splitByToasteeTags(trimmedText);
 
